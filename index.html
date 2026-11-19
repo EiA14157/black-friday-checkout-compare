@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; style-src 'sha256-6H1has3CrZJx7SjfERrT3rd2+N11Pwx1Ffe89gpu90o='; script-src 'sha256-xqWJ9vpdKZCro9XbOG4jxolxkAolwMEIw0tMJdwWDK4=' 'sha256-Qr6SS2EaqN6WvFospFI94HiP6VPud31qDJqXrVdFg2E='; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="상품가와 쿠폰, 배송비, 새로 내야 할 회원비까지 더해 두 쇼핑몰의 실제 결제액을 비교하세요.">
+<title>블프 실결제 비교기</title>
+<style>
+:root{color-scheme:dark;--bg:#111610;--panel:#1a2219;--line:#3b4934;--text:#f4f7eb;--muted:#b7c4ab;--green:#bffc50;font:16px/1.55 system-ui,-apple-system,"Malgun Gothic",sans-serif;background:var(--bg);color:var(--text)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:radial-gradient(ellipse at top right,#27351b 0,transparent 48%)}
+.shell{width:min(100% - 2rem,67rem);margin-inline:auto}
+header{border-bottom:1px solid var(--line)}
+.top{min-height:4.05rem;display:flex;justify-content:space-between;align-items:center;gap:.7rem}
+.logo{display:flex;align-items:center;gap:.55rem;font-weight:900}
+.logo img{width:1.85rem;height:1.85rem}
+.local{color:var(--muted);font-size:.84rem;white-space:nowrap}
+.local::before{content:"";display:inline-block;border-radius:50%;width:.46rem;height:.46rem;background:var(--green);margin-right:.4rem;vertical-align:middle}
+.intro{padding:3.9rem 0 1.35rem}
+.eyebrow{font-size:.8rem;font-weight:900;letter-spacing:.15em;color:var(--green);margin:0 0 .6rem}
+h1{font-size:clamp(2.45rem,7vw,5rem);line-height:1.05;letter-spacing:-.075em;margin:0;font-weight:950}
+h1 em{color:var(--green);font-style:normal}
+.intro>p:not(.eyebrow){color:var(--muted);margin:1rem 0}
+.tools{display:flex;gap:.55rem;margin-top:1.3rem}
+button{min-height:2.6rem;cursor:pointer;font:inherit;font-weight:800;color:var(--text);background:#232e1e;border:1px solid var(--line);border-radius:.55rem;padding:.4rem .78rem}
+button:hover{background:#35482c}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-bottom:1rem}
+fieldset{margin:0;min-width:0;background:var(--panel);border-radius:.9rem;border:1px solid var(--line);padding:1rem;display:grid;gap:.7rem;align-content:start}
+legend{font-weight:850;color:var(--green);padding:.1rem .4rem}
+label{display:block;font-size:.88rem;font-weight:750;min-width:0}
+input,select{display:block;width:100%;min-width:0;background:#121910;color:var(--text);border:1px solid var(--line);padding:.55rem .65rem;border-radius:.5rem;font:inherit;font-size:1rem;min-height:2.7rem;margin-top:.25rem}
+input::placeholder{color:#a5b599}
+input::-webkit-inner-spin-button{margin:0}
+.with-unit{display:block;position:relative}
+.with-unit input{padding-right:2.15rem;appearance:textfield}
+.with-unit input::-webkit-inner-spin-button{appearance:none}
+.with-unit>span{position:absolute;right:.65rem;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.optional,.required,small{font-size:.78rem;color:var(--muted);font-weight:500}
+.required{color:var(--green)}
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
+.result{background:#202a1a;border:1px solid #536846;border-radius:1rem;padding:1.15rem clamp(.95rem,2.7vw,1.7rem)}
+.result h2{margin:0;font-size:clamp(1.3rem,3.6vw,2rem);letter-spacing:-.025em;overflow-wrap:anywhere}
+.result p:not(.eyebrow){margin:.3rem 0;color:var(--muted)}
+.breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem;margin-top:1rem}
+.breakdown article{border:1px solid var(--line);background:#141d12;border-radius:.65rem;padding:.75rem;min-width:0;overflow-wrap:anywhere}
+.breakdown article.best{border-color:var(--green)}
+.breakdown h3{font-size:1rem;margin:0}
+.breakdown dl{border-bottom:1px dashed var(--line);padding-bottom:.6rem;margin:.5rem 0 .6rem}
+.breakdown dl div{display:flex;justify-content:space-between;gap:.35rem;color:var(--muted);font-size:.83rem}
+.breakdown dd{margin:0;text-align:right}
+.total{font-size:clamp(1rem,4.3vw,1.65rem);font-variant-numeric:tabular-nums;color:var(--green)}
+.total-label{font-size:.82rem}
+footer{padding:1.2rem 0 2.7rem;color:var(--muted);font-size:.84rem}
+@media(max-width:640px){.intro{padding-top:2.45rem}.options{grid-template-columns:1fr}.local{font-size:.75rem}.logo{font-size:.91rem}}
+@media(max-width:335px){.breakdown,.duo{grid-template-columns:1fr}}
+
+.logo-mark{display:grid;place-items:center;width:1.85rem;height:1.85rem;border-radius:.5rem;background:var(--green);color:#18210e;font-size:1.24rem}
+</style>
+</head>
+<body>
+<header><div class="shell top"><span class="logo"><span class="logo-mark" aria-hidden="true">↔</span>블프 실결제 비교기</span><span class="local">기기에서만 계산</span></div></header>
+<main class="shell">
+  <section class="intro" aria-labelledby="title">
+    <p class="eyebrow">CHECKOUT COMPARE</p>
+    <h1 id="title">할인율 말고,<br><em>실제로 내는 돈.</em></h1>
+    <p>같은 상품을 파는 두 곳의 조건을 적으면 실제 결제액을 바로 비교해요.</p>
+    <div class="tools"><button type="button" id="example">예시 넣기</button><button type="button" id="reset">초기화</button></div>
+  </section>
+  <form id="compare" autocomplete="off">
+    <div id="options" class="options"></div>
+    <noscript>이 비교기는 브라우저의 JavaScript를 켜야 사용할 수 있어요.</noscript>
+  </form>
+  <template id="option">
+    <fieldset>
+      <legend></legend>
+      <label>쇼핑몰 이름 <input name="name" type="text" maxlength="32"></label>
+      <label>상품가 <span class="required">필수</span><span class="with-unit"><input name="price" type="number" inputmode="numeric" min="0" max="100000000" step="1" placeholder="0" required><span>원</span></span></label>
+      <div class="duo">
+        <label>쿠폰 종류<select name="kind"><option value="none">쿠폰 없음</option><option value="flat">금액 할인 (원)</option><option value="percent">비율 할인 (%)</option></select></label>
+        <label data-coupon hidden>할인 값<span class="with-unit"><input name="coupon" type="number" min="0" inputmode="decimal" placeholder="0"><span data-unit>원</span></span></label>
+      </div>
+      <label data-cap hidden>최대 할인액 <span class="optional">선택</span><span class="with-unit"><input name="cap" type="number" inputmode="numeric" min="0" max="100000000" step="1" placeholder="제한 없음"><span>원</span></span></label>
+      <div class="duo">
+        <label>배송비<span class="with-unit"><input name="shipping" type="number" inputmode="numeric" min="0" max="100000000" step="1" placeholder="0"><span>원</span></span></label>
+        <label>추가 멤버십 비용<span class="with-unit"><input name="membership" type="number" inputmode="numeric" min="0" max="100000000" step="1" placeholder="0"><span>원</span></span></label>
+      </div>
+      <small>이미 가입했다면 추가 멤버십 비용은 비워 두세요.</small>
+    </fieldset>
+  </template>
+  <section id="result" class="result" aria-labelledby="result-label">
+    <p class="eyebrow" id="result-label">비교 결과</p>
+    <div role="status"><h2 id="verdict">두 상품가를 넣어 주세요.</h2><p id="detail">쿠폰과 추가 비용까지 반영한 실결제액을 보여드려요.</p></div>
+    <div id="breakdown" class="breakdown" hidden></div>
+  </section>
+</main>
+<footer class="shell">직접 입력한 원화 금액으로만 계산해요. 실시간 가격, 포인트 적립액, 카드 청구 할인은 조회하지 않아요.</footer>
+<script id="logic-source">
+'use strict';
+const CheckoutLogic = (() => {
+  const limit = 100_000_000;
+  const isWon = n => Number.isInteger(n) && n >= 0 && n <= limit;
+  function calculate({ price, kind = 'none', coupon = 0, cap = null, shipping = 0, membership = 0 }) {
+    if (![price, shipping, membership].every(isWon)) return null;
+    let discount = 0;
+    if (kind === 'flat') {
+      if (!isWon(coupon)) return null;
+      discount = coupon;
+    } else if (kind === 'percent') {
+      if (!Number.isFinite(coupon) || coupon < 0 || coupon > 100 || (cap !== null && !isWon(cap))) return null;
+      // Convert percent inputs (up to two decimal places) to exact integer basis points.
+      const rate = Math.round(coupon * 100);
+      discount = Math.floor(price * rate / 10000);
+      if (cap !== null) discount = Math.min(discount, cap);
+    } else if (kind !== 'none') {
+      return null;
+    }
+    discount = Math.min(discount, price);
+    return { price, discount, shipping, membership, total: price - discount + shipping + membership };
+  }
+  function compare(a, b) {
+    if (!a || !b) return null;
+    const difference = Math.abs(a.total - b.total);
+    return { difference, winner: difference === 0 ? null : a.total < b.total ? 0 : 1 };
+  }
+  return { calculate, compare };
+})();
+if (typeof module !== 'undefined') module.exports = CheckoutLogic;
+</script>
+<script>
+'use strict';
+(() => {
+  const $ = id => document.getElementById(id);
+  const won = n => new Intl.NumberFormat('ko-KR').format(n) + '원';
+  const form = $('compare'), area = $('options'), template = $('option');
+  const panels = ['A', 'B'].map(key => {
+    const fragment = template.content.cloneNode(true);
+    const panel = fragment.querySelector('fieldset');
+    panel.querySelector('legend').textContent = '쇼핑몰 ' + key;
+    panel.querySelector('[name=name]').placeholder = '쇼핑몰 ' + key;
+    area.append(fragment);
+    return panel;
+  });
+  const control = (p, name) => p.querySelector('[name=' + name + ']');
+  const value = (p, name) => {
+    const field = control(p, name);
+    return field.value === '' && !field.validity.badInput ? 0 : field.valueAsNumber;
+  };
+  function couponControls(panel) {
+    const kind = control(panel, 'kind').value;
+    const amount = control(panel, 'coupon');
+    panel.querySelector('[data-coupon]').hidden = kind === 'none';
+    panel.querySelector('[data-cap]').hidden = kind !== 'percent';
+    amount.disabled = kind === 'none';
+    control(panel, 'cap').disabled = kind !== 'percent';
+    amount.max = kind === 'percent' ? 100 : 100000000;
+    amount.step = kind === 'percent' ? '0.01' : '1';
+    panel.querySelector('[data-unit]').textContent = kind === 'percent' ? '%' : '원';
+  }
+  function read(panel, i) {
+    const price = control(panel, 'price');
+    const invalid = panel.querySelector('input:enabled:invalid');
+    const label = control(panel, 'name').value.trim() || '쇼핑몰 ' + (i ? 'B' : 'A');
+    if (invalid) return { label, invalid, missingPrice: invalid === price && price.validity.valueMissing };
+    return { label, sums: CheckoutLogic.calculate({
+      price: price.valueAsNumber, kind: control(panel,'kind').value, coupon: value(panel,'coupon'),
+      cap: control(panel,'cap').value === '' ? null : value(panel,'cap'),
+      shipping: value(panel,'shipping'), membership: value(panel,'membership')
+    }) };
+  }
+  function node(tag, content, className) {
+    const item = document.createElement(tag);
+    if (content !== undefined) item.textContent = content;
+    if (className) item.className = className;
+    return item;
+  }
+  function receipt(item, winning) {
+    const s = item.sums, card = node('article', undefined, winning ? 'best' : '');
+    card.append(node('h3', item.label));
+    const dl = node('dl');
+    for (const [name, amount, prefix] of [
+      ['상품가',s.price,''],['쿠폰 할인',s.discount,s.discount ? '−' : ''],['배송비',s.shipping,''],['추가 멤버십 비용',s.membership,'']
+    ]) {
+      const row = node('div');
+      row.append(node('dt', name), node('dd', prefix + won(amount)));
+      dl.append(row);
+    }
+    card.append(dl, node('p','실결제액', 'total-label'), node('strong',won(s.total), 'total'));
+    return card;
+  }
+  function update() {
+    const items = panels.map(read);
+    const verdict = $('verdict'), detail = $('detail'), breakdown = $('breakdown');
+    const result = CheckoutLogic.compare(...items.map(x=>x.sums));
+    breakdown.hidden = !result;
+    if (!result) {
+      const bad = items.find(x => x.invalid && !x.missingPrice);
+      verdict.textContent = bad ? '입력값을 확인해 주세요.' : '두 상품가를 넣어 주세요.';
+      detail.textContent = bad ? bad.label + '의 가격과 할인 조건에 허용 범위를 벗어난 값이 있어요.' :
+        '쿠폰과 추가 비용까지 반영한 실결제액을 보여드려요.';
+      breakdown.replaceChildren();
+      return;
+    }
+    const { winner, difference } = result;
+    verdict.textContent = winner === null ? '두 곳의 실결제액이 같아요.' : items[winner].label + '이 ' + won(difference) + ' 더 저렴해요.';
+    detail.textContent = '쿠폰은 상품가에만 적용하고 배송비와 멤버십 비용은 나중에 더했어요.';
+    breakdown.replaceChildren(...items.map((item,i)=>receipt(item,i===winner)));
+  }
+  const example = [
+    { name:'쇼핑몰 A', price:99900, kind:'percent', coupon:15, cap:10000, shipping:3000, membership:0 },
+    { name:'쇼핑몰 B', price:95000, kind:'flat', coupon:10000, shipping:0, membership:4990 }
+  ];
+  form.addEventListener('submit', e => e.preventDefault());
+  form.addEventListener('input', e => { if (e.target.name !== 'kind') update(); });
+  form.addEventListener('change', e => {
+    if (e.target.name === 'kind') {
+      const panel = e.target.closest('fieldset');
+      control(panel,'coupon').value = '';
+      control(panel,'cap').value = '';
+      couponControls(panel); update();
+    }
+  });
+  $('example').addEventListener('click', () => {
+    form.reset();
+    panels.forEach((panel, i) => {
+      for (const [key, v] of Object.entries(example[i])) control(panel,key).value = v;
+      couponControls(panel);
+    });
+    update();
+  });
+  $('reset').addEventListener('click', () => {
+    form.reset();
+    panels.forEach(couponControls);
+    update();
+    control(panels[0],'name').focus();
+  });
+  panels.forEach(couponControls);
+  update();
+})();
+</script>
+</body>
+</html>
